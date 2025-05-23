@@ -22,7 +22,7 @@ with tab1:
                 )
                 try:
                     response = openai.chat.completions.create(
-                        model="gpt-4o",
+                        model="gpt-4.1",
                         messages=[
                             {"role": "system", "content": "You are a helpful assistant."},
                             {"role": "user", "content": prompt}
@@ -43,7 +43,7 @@ with tab2:
     uploaded_file = st.file_uploader("Upload an image (screenshot, post, etc.)", type=["png", "jpg", "jpeg"])
     if st.button("Check Image for Fake News", key="image"):
         if uploaded_file is not None:
-            st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
+            st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
             with st.spinner("Analyzing image..."):
                 try:
                     # Read image bytes
