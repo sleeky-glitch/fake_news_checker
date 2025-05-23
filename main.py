@@ -1,5 +1,6 @@
 import streamlit as st
 import openai
+import base64
 
 openai.api_key = st.secrets["openai"]["api_key"]
 
@@ -40,33 +41,40 @@ with tab1:
             st.warning("Please enter some text.")
 
 with tab2:
-    uploaded_file = st.file_uploader("Upload an image (screenshot, post, etc.)", type=["png", "jpg", "jpeg"])
+    uploaded_file = st.file_uploader("Upload an image (screenshot, post, etc.)", type=["png", "jpg", "jpeg", "webp", "gif"])
     if st.button("Check Image for Fake News", key="image"):
         if uploaded_file is not None:
             st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
             with st.spinner("Analyzing image..."):
                 try:
-                    # Read image bytes
                     image_bytes = uploaded_file.read()
-                    # Send image to GPT-4o vision
-                    response = openai.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[
-                            {"role": "system", "content": "You are a fact-checking assistant. Analyze the uploaded image for signs of fake or misleading news. If text is present, extract and analyze it. Explain your reasoning and suggest how to verify the claim."},
-                            {"role": "user", "content": [
-                                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + image_bytes.decode("latin1")}}
-                            ]}
-                        ],
-                        max_tokens=700,
-                        temperature=0.2
-                    )
-                    result = response.choices[0].message.content
-                    st.success("Analysis complete!")
-                    st.markdown("**AI Analysis:**")
-                    st.write(result)
+                    mime = uploaded_file.type  # e.g., "image/png"
+                    # Only allow supported MIME types
+                    if mime not in ["image/png", "image/jpeg", "image/webp", "image/gif"]:
+                        st.error("Unsupported image format. Please upload PNG, JPEG, WEBP, or GIF.")
+                    else:
+                        def image_to_data_url(image_bytes, mime):
+                            b64 = base64.b64encode(image_bytes).decode()
+                            return f"data:{mime};base64,{b64}"
+                        image_data_url = image_to_data_url(image_bytes, mime)
+                        response = openai.chat.completions.create(
+                            model="gpt-4.1",
+                            messages=[
+                                {"role": "system", "content": "You are a fact-checking assistant. Analyze the uploaded image for signs of fake or misleading news. If text is present, extract and analyze it. Explain your reasoning and suggest how to verify the claim."},
+                                {"role": "user", "content": [
+                                    {"type": "image_url", "image_url": {"url": image_data_url}}
+                                ]}
+                            ],
+                            max_tokens=700,
+                            temperature=0.2
+                        )
+                        result = response.choices[0].message.content
+                        st.success("Analysis complete!")
+                        st.markdown("**AI Analysis:**")
+                        st.write(result)
                 except Exception as e:
                     st.error(f"Error: {e}")
         else:
             st.warning("Please upload an image.")
 
-st.info("This tool uses OpenAI GPT-4o to analyze news. Always cross-check with trusted sources.")
+st.info("Made with <3 by BSPL")
