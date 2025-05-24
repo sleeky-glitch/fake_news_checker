@@ -17,7 +17,7 @@ with tab1:
             with st.spinner("Analyzing text..."):
                 prompt = (
                     "You are a fact-checking assistant. "
-                    "Analyze the following news for signs of being fake or misleading. "
+                    "Analyze the following news for signs of being fake or misleading, also do sentiment analysis "
                     "Explain your reasoning and, if possible, suggest how to verify the claim:\n\n"
                     f"{user_input}"
                 )
@@ -60,7 +60,7 @@ with tab2:
                         response = openai.chat.completions.create(
                             model="gpt-4.1",
                             messages=[
-                                {"role": "system", "content": "You are a fact-checking assistant. Analyze the uploaded image for signs of fake or misleading news. If text is present, extract and analyze it. Explain your reasoning and suggest how to verify the claim."},
+                                {"role": "system", "content": "You are a fact-checking assistant. Analyze the uploaded image for signs of fake or misleading news. If text is present, extract and analyze it. Explain your reasoning and suggest how to verify the claim, also provide a sentiment analysis and author of the claim, also try to provide original source."},
                                 {"role": "user", "content": [
                                     {"type": "image_url", "image_url": {"url": image_data_url}}
                                 ]}
